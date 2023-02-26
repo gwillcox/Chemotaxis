@@ -12,7 +12,8 @@ public class SimController : MonoBehaviour
 {
     [Range(0.000001f, 1f)]
     public float diffusionRate;
-    public int numDiffusionSteps;
+    public int numDiffusionStepsPerFrame;
+    public int numStartupSteps;
     public Tilemap t_map;
     public List<Vector3Int>[] neighbors;
     public SpaceType[] t_map_types;
@@ -76,6 +77,11 @@ public class SimController : MonoBehaviour
             }
             i++;
         }
+
+        for (int t=0; t<numStartupSteps; t++)
+        {
+            DiffuseConcentration();
+        }
     }
 
 
@@ -86,6 +92,7 @@ public class SimController : MonoBehaviour
         Vector3Int t_loc = new Vector3Int(1, 1, 0);
 
         InitializeConcentration();
+
     }
 
     SpaceType GetSpaceType(int id)
@@ -222,7 +229,7 @@ public class SimController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        for (int i=0; i<numDiffusionSteps; i++) { DiffuseConcentration(); }
+        for (int i=0; i<numDiffusionStepsPerFrame; i++) { DiffuseConcentration(); }
         UpdateColors();
     }
 

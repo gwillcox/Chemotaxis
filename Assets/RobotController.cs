@@ -9,7 +9,8 @@ public class RobotController : MonoBehaviour
     public float sensorDistance = 0.05f;
     public float turnSpeed = 0.05f;
     public float movementSpeed;
-    public float noiseScale=0f;
+    public float noiseScale = 0f;
+    public bool logSensing = true;
     [Range(0f,1f)]
     public float cRemovalRate=0f;
     public float wallAvoidanceRate=1f;
@@ -52,7 +53,6 @@ public class RobotController : MonoBehaviour
             GetConcentration(neighbors[2]) - GetConcentration(neighbors[0]), 
             0);
 
-        // Add some noise
         observedGradient += Random.insideUnitSphere * noiseScale ;
 
         return observedGradient;
@@ -120,10 +120,19 @@ public class RobotController : MonoBehaviour
 
     float GetTurnDirection()
     {
-        float c_right = InterpolateConcentrationAtPoint(transform.position + sensorDistance * (transform.up + transform.right)) + GetNoise();
-        float c_left = InterpolateConcentrationAtPoint(transform.position + sensorDistance * (transform.up - transform.right)) + GetNoise();
+        float c_right = InterpolateConcentrationAtPoint(transform.position + sensorDistance * (transform.up + transform.right));
+        float c_left = InterpolateConcentrationAtPoint(transform.position + sensorDistance * (transform.up - transform.right));
         observedGradient = new Vector3(c_left, c_right, 0);
-        return Mathf.Sign(c_left-c_right);
+
+        if (logSensing)
+        {
+            // Add some noise logarithmically or linearly
+            return Mathf.Sign(Mathf.Log10(c_left)- Mathf.Log10(c_right) + GetNoise() );
+        }
+        else
+        {
+            return Mathf.Sign(c_left - c_right + GetNoise());
+        }
     }
 
     void Step()
@@ -156,9 +165,11 @@ public class RobotController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
+        Gizmos.color = Color.yellow;
         Gizmos.DrawLine(transform.position, transform.position + sensorDistance * (transform.up + transform.right));
         Gizmos.DrawLine(transform.position, transform.position + sensorDistance * (transform.up - transform.right));
+        Gizmos.DrawSphere(transform.position + sensorDistance * (transform.up + transform.right), 0.02f);
+        Gizmos.DrawSphere(transform.position + sensorDistance * (transform.up - transform.right), 0.02f);
 
         for (int i=0; i<neighbors.Length; i++)
         {
